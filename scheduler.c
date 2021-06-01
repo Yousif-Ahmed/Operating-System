@@ -8,7 +8,7 @@ struct process
     // all process info from input file
     int pid;
     int arraival_time;
-    int runing_time;
+    int running_time;
     int priority;
 
     struct PCB *P;
@@ -48,6 +48,7 @@ int total_waiting_time = 0;
 int total_idle_time =0 ;
 int total_turnaround_time =0 ;
 int total_response_time =0 ;
+int total_running_time =0 ;
 
 void SRTN()
 {
@@ -144,11 +145,13 @@ void Preemptive_HPF()
     int prev_time = 0;
     int curr_process;
     int prev_process = -1;
-    while (!(rear == -1 && front == -1)) // while queue is not empty -QA
+    int n =MAX ; // asssume that is number of processes 
+    int completed =0;
+    while (completed  != n) // while completed process not equal all processes
     {
         if (current_time - prev_time == 1) // now where are in time slot for 1 sec
         {
-            curr_process = front ;
+            curr_process = front ; // current process for 1 sec then check again
             if (prev_process != -1 && prev_process != curr_process)
             {
                 // contextSwitching  QA
@@ -159,37 +162,40 @@ void Preemptive_HPF()
                 Ready_Queue[prev_process].P->status ="sto";
 
             }
-            if (Ready_Queue[front].P->run_for_first) // if run first set the start time
+            if (Ready_Queue[curr_process].P->run_for_first) // if run first set the start time
             {
                 // Setting ST for the process
-                Ready_Queue[front].P->start_time = current_time;
+                Ready_Queue[curr_process].P->start_time = current_time;
                 // setting bool to false
-                Ready_Queue[front].P->run_for_first = false;
+                Ready_Queue[curr_process].P->run_for_first = false;
                 // total idle time for the process
-                total_idle_time+= Ready_Queue[front].P->start_time-Ready_Queue[front].arraival_time ;
+                total_idle_time+= Ready_Queue[curr_process].P->start_time-Ready_Queue[curr_process].arraival_time ;
                 // state of the current process is running now 
-                 Ready_Queue[front].P->state = 'r' ;
+                 Ready_Queue[curr_process].P->state = 'r' ;
                  // status of the current process start ;
-                 Ready_Queue[front].P->status ="sta";
+                 Ready_Queue[curr_process].P->status ="sta";
+
+                 // total running time of all processes
+                 total_running_time+= Ready_Queue[curr_process].running_time;
         
             }else{
                 // process state resumed
-                Ready_Queue[front].P->status ="res";
+                Ready_Queue[curr_process].P->status ="res";
             }
             // we picking a process then we need to decreament or remaining time
-            (Ready_Queue[front].P->remaining_time )--;
+            (Ready_Queue[curr_process].P->remaining_time )--;
             prev_time = current_time;
             // process complete
-            if (Ready_Queue[front].P->remaining_time == 0)
+            if (Ready_Queue[curr_process].P->remaining_time == 0)
             {
                 // TODO --> WTA
                 // remember :the state----> TODO
                 // Finish Time Calculation
-                Ready_Queue[front].P->finish_time = current_time;
+                Ready_Queue[curr_process].P->finish_time = current_time;
                 // TA_time = FT -AT
-                Ready_Queue[front].P->turnaround_time = Ready_Queue[front].P->finish_time - Ready_Queue[front].arraival_time;
+                Ready_Queue[curr_process].P->turnaround_time = Ready_Queue[front].P->finish_time - Ready_Queue[front].arraival_time;
                 // WT = TA_time - AT
-                Ready_Queue[front].P->Waiting_time = Ready_Queue[front].P->turnaround_time - Ready_Queue[front].arraival_time;
+                Ready_Queue[curr_process].P->Waiting_time = Ready_Queue[front].P->turnaround_time - Ready_Queue[front].running_time;
 
                 // OUR GLOBAL TIMES
                 total_waiting_time += Ready_Queue[front].P->Waiting_time ;
@@ -198,11 +204,21 @@ void Preemptive_HPF()
 
                 // setting state as completed 
                 Ready_Queue[front].P->status= "fin" ;
+
+                //increase completed counter
+                completed++ ;
+
+                // remember : we should delete process data here 
             }
             current_time = getClk();
             prev_process = curr_process;
         }
     }
+    int finish_time = getClk();
+    // here all process finished 
+    // AVT
+    avg_waiting_time = (float) total_waiting_time / n; 
+
 }
 int main(int argc, char *argv[])
 {
@@ -244,7 +260,7 @@ int main(int argc, char *argv[])
 
 		    	break;
 	    	case 2:
-		    	AllProcesses[process_count].runing_time=c - '0';
+		    	AllProcesses[process_count].running_time=c - '0';
 
 		    	break;
 	    	case 3:
@@ -266,7 +282,7 @@ int main(int argc, char *argv[])
     {
     	printf("%d |",AllProcesses[i].pid);
     	printf("%d |",AllProcesses[i].arraival_time);
-    	printf("%d |",AllProcesses[i].runing_time);
+    	printf("%d |",AllProcesses[i].running_time);
     	printf("%d |",AllProcesses[i].priority);
     	printf("\n");
     }
