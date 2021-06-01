@@ -116,7 +116,7 @@ void SRTN()
                 // TA_time = FT -AT
                 Ready_Queue[front].P->turnaround_time = Ready_Queue[front].P->finish_time - Ready_Queue[front].arraival_time;
                 // WT = TA_time - AT
-                Ready_Queue[front].P->Waiting_time = Ready_Queue[front].P->turnaround_time - Ready_Queue[front].arraival_time;
+                Ready_Queue[front].P->Waiting_time = Ready_Queue[front].P->turnaround_time - Ready_Queue[front].running_time;
 
                 // OUR GLOBAL TIMES
                 total_waiting_time += Ready_Queue[front].P->Waiting_time ;
