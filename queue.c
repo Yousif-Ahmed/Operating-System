@@ -89,3 +89,8 @@ void display_pqueue(queue *qu)
 
     front = 0;
 }
+bool is_empty()
+{
+	// check that ready queue is empty
+	return (rear == front) ? true : false;
+}

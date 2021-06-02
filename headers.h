@@ -10,12 +10,49 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
+
 
 typedef short bool;
 #define true 1
 #define false 0
 #define MAX 300
 #define SHKEY 300
+
+
+// Message struct to use for communication
+struct message
+{
+    long mtype;
+    char msgText[256];
+};
+union Semun
+{
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+    struct seminfo *__buf;
+    void *__pad;
+};
+void *shmaddress;
+key_t communicationKey;
+int shmid = -1;
+int semid = -1;
+union Semun semun;
+
+struct message
+{
+	long mtype;
+	queue process;
+} processData;
+
+struct Message
+{
+	long mtype;
+	int value;
+} parameter;
+key_t queueKey;
+int queueId;
 
 //Global Variables
 int process_count = 0;
@@ -27,7 +64,15 @@ enum Algorithms {
 		ShortestRemainingTimeNext,
 		RoundRobin
 }Algo;
+
+enum State {
+		Started,
+		Stopped,
+		Resumed,	 	
+		Finished
+}state;
 int quantumTime = 0;
+int completedProcesses = 0;
 // Global times for our Scheduler
 
 float avg_waiting_time;
@@ -86,4 +131,14 @@ void destroyClk(bool terminateAll)
     {
         killpg(getpgrp(), SIGINT);
     }
+}
+
+
+
+/* 
+* All Algorithms in scheduler.c call this method to check if the process generator has sent a new process
+*/
+
+void updateQueue(){
+
 }

@@ -19,10 +19,12 @@ typedef struct PCB
     // r  -->for running
     // w  -->for waiting
     char state;
-    // sta --> start
-    // sto --> stopped
-    // res -->resumed
-    // fin --> finished
+    // Started --> start
+    // Stopped --> stopped
+    // Resumed -->resumed
+    // Finished --> finished
+    enum State processState;
+    
     char * status ; // in document need to konw started --> stopped -->resumed -->resumed -->finished
 
     int excution_time;

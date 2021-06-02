@@ -1,25 +1,12 @@
 #include "headers.h"
 #include "queue.h"
 
-// Message struct to use for communication
-struct message
-{
-    long mtype;
-    char msgText[256];
-};
-union Semun
-{
-    int val;
-    struct semid_ds *buf;
-    ushort *array;
-    struct seminfo *__buf;
-    void *__pad;
-};
-void *shmaddress;
+
 
 void clearResources(int);
 void readProcessesFile(queue *AllProcesses, char *filePath);
 void validateArguments();
+void up(int sem);
 
 int main(int argc, char *argv[])
 {
@@ -58,8 +45,11 @@ int main(int argc, char *argv[])
     validateArguments();
 
     // 3. Initiate and create the scheduler and clock processes.
-    system("./clk.out");       // run clk program
-    system("./scheduler.out"); // run scheduler
+    char *args[]={"./clk.out",NULL};
+    execl(args[0], args);       // run clk program
+    args[0] = "./scheduler.out";
+    execl(args[0], args);
+    //system("./scheduler.out"); // run scheduler
 
     // 4. Use this function after creating the clock process to initialize clock.
     initClk();
@@ -69,18 +59,15 @@ int main(int argc, char *argv[])
     
 
     // Shared Memory & Semaphore for communication between procoess_generator and scheduler
-    key_t communicationKey = ftok("keyfile", 'M');
-    int shmid = -1;
-    int semid = -1;
-    union Semun semun;
+    communicationKey = ftok("keyfile", 'M');
+
     while (shmid == -1 || semid == -1)
     {
         shmid = shmget(communicationKey, 5, 0666 | IPC_CREAT);
-        semid = semget(communicationKey, 2, 0666 | IPC_CREAT);
+        semid = semget(communicationKey, 1, 0666 | IPC_CREAT);
     }
     semun.val = 0;
     semctl(semid, 0, SETVAL, semun);
-    semctl(semid, 1, SETVAL, semun);
 
     // 5. Create a data structure for processes and provide it with its parameters.
 
@@ -95,6 +82,7 @@ int main(int argc, char *argv[])
             shmaddress = AllProcesses[processIdx];              // write the process info in the shared memory, so the scheduler can read it
             shmdt(shmaddress);
             processIdx++;
+            //up(semid);
         }
     }
     
@@ -158,4 +146,17 @@ void readProcessesFile(queue *AllProcesses, char *filePath)
         }
     }
     fclose(in_file); //close the file
+}
+
+void up(int semid)
+{
+    struct sembuf buf = {
+        .sem_num = 1, // sem for sending
+        .sem_op = 1,  // up
+        .sem_flg = IPC_NOWAIT};
+
+    if (semop(semid, &buf, 1) == -1)
+    {
+        perror("Error in up send\n");
+    }
 }
