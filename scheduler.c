@@ -1,19 +1,10 @@
+#include "queue.h"
 #include "headers.h"
 #define MAX 300
 
 int front, rear;//parameters of priority queue
 
-struct process
-{
-    // all process info from input file
-    int pid;
-    int arraival_time;
-    int running_time;
-    int priority;
-
-    struct PCB *P;
-
-} Ready_Queue[MAX];
+queue Ready_Queue[MAX];
 
 // process control block
 struct PCB
@@ -229,7 +220,7 @@ int main(int argc, char *argv[])
     initClk();
     
     FILE *in_file  = fopen("inputFile.txt", "r"); 
-    if (in_file == NULL) 
+    if (in_file == NULL)
     {   
       printf("Error! Could not open file\n"); 
       exit(-1); 
@@ -237,7 +228,6 @@ int main(int argc, char *argv[])
     
     int process_count=0;
     int i=0;
-    struct process AllProcesses[MAX];
      
     for (char c = getc(in_file); c != EOF; c = getc(in_file))
     {
@@ -252,19 +242,19 @@ int main(int argc, char *argv[])
 	    switch(i)
 	    {
 	    	case 0:
-		    	AllProcesses[process_count].pid=c - '0';
+		    	Ready_Queue[process_count].pid=c - '0';
 
 		    	break;
 	    	case 1:
-		    	AllProcesses[process_count].arraival_time=c - '0';
+		    	Ready_Queue[process_count].arraival_time=c - '0';
 
 		    	break;
 	    	case 2:
-		    	AllProcesses[process_count].running_time=c - '0';
+		    	Ready_Queue[process_count].running_time=c - '0';
 
 		    	break;
 	    	case 3:
-		    	AllProcesses[process_count].priority=c - '0';
+		    	Ready_Queue[process_count].priority=c - '0';
 
 		    	break;
 	    }
@@ -280,10 +270,10 @@ int main(int argc, char *argv[])
     printf("process_count at the end: %d \n",process_count);
     for(i=0; i<process_count; i++)    
     {
-    	printf("%d |",AllProcesses[i].pid);
-    	printf("%d |",AllProcesses[i].arraival_time);
-    	printf("%d |",AllProcesses[i].running_time);
-    	printf("%d |",AllProcesses[i].priority);
+    	printf("%d |",Ready_Queue[i].pid);
+    	printf("%d |",Ready_Queue[i].arraival_time);
+    	printf("%d |",Ready_Queue[i].running_time);
+    	printf("%d |",Ready_Queue[i].priority);
     	printf("\n");
     }
    	
@@ -306,102 +296,8 @@ int main(int argc, char *argv[])
 	    	SRTN();
 	    	break;
     }
-    
-    
-    
     //destroyClk(true);
 }
 
-/* Function to create an empty priority queue */
-void create()
-{
-    front = rear = -1;
-}
 
-/* Function to insert value into priority queue */
-void insert_by_priority(int data) 
-{
-    if (rear >= MAX - 1)
-    {
-        printf("\nQueue overflow no more elements can be inserted");
-        return;
-    }
-    if ((front == -1) && (rear == -1))
-    {
-        front++;
-        rear++;
-        Ready_Queue[rear].priority = data;
-        return;
-    }
-    else
-        check(data);
-    rear++;
-}
 
-/* Function to check priority and place element */
-void check(int data)
-{
-    int i, j;
-
-    for (i = 0; i <= rear; i++)
-    {
-        if (data > Ready_Queue[i].priority)
-        {
-            for (j = rear + 1; j > i; j--)
-            {
-                Ready_Queue[j].priority = Ready_Queue[j - 1].priority;
-            }
-            Ready_Queue[i].priority = data;
-            return;
-        }
-    }
-    Ready_Queue[i].priority = data; //incase rear=-1
-}
-
-/* Function to delete an element from queue */
-void delete_by_priority(int data)
-{
-    int i;
-
-    if ((front == -1) && (rear == -1))
-    {
-        printf("\nQueue is empty no elements to delete");
-        return;
-    }
-
-    for (i = 0; i <= rear; i++)
-    {
-        if (data == Ready_Queue[i].priority)
-        {
-            for (; i < rear; i++)
-            {
-                Ready_Queue[i].priority = Ready_Queue[i + 1].priority;
-            }
-
-            Ready_Queue[i].priority = -99;
-            rear--;
-
-            if (rear == -1)
-                front = -1;
-            return;
-        }
-    }
-    printf("\n%d not found in queue to delete", data);
-}
-
-/* Function to display queue elements */
-void display_pqueue()
-{
-    if ((front == -1) && (rear == -1))
-    {
-        printf("\nQueue is empty");
-        return;
-    }
-
-    for (; front <= rear; front++)
-    {
-        printf(" %d ", Ready_Queue[front].priority);
-    }
-
-    front = 0;
-}
