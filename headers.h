@@ -17,6 +17,25 @@ typedef short bool;
 
 #define SHKEY 300
 
+
+// Global times for our Scheduler
+
+float avg_waiting_time;
+
+float CPU_Utilization;
+int total_waiting_time = 0;
+int total_idle_time =0 ;
+int total_turnaround_time =0 ;
+int total_response_time =0 ;
+int total_running_time =0 ;
+int start_arr_index = 0;
+bool running = false;
+
+#define MAX 300
+
+
+queue Ready_Queue[MAX];
+
 ///==============================
 //don't mess with this variable//
 int *shmaddr; //
