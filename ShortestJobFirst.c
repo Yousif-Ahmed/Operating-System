@@ -1,7 +1,5 @@
 #include "ShortestJobFirst.h"
 
-
-
 queue get_min_running_time()
 {
     // do some logic here
@@ -50,32 +48,32 @@ void SJF()
             curr_process = get_min_running_time() ;
 
             // set its parameters  
-            curr_process.P->start_time = getClk() ;
-            curr_process.P->run_for_first = false ;
-            curr_process.P->Waiting_time = getClk() - curr_process.arraival_time ;            
+            curr_process.pcb->start_time = getClk() ;
+            curr_process.pcb->run_for_first = false ;
+            curr_process.pcb->Waiting_time = getClk() - curr_process.arraival_time ;            
             // equal to waiting time
-            curr_process.P->response_time = curr_process.P->start_time - curr_process.arraival_time ;
+            curr_process.pcb->response_time = curr_process.pcb->start_time - curr_process.arraival_time ;
 
 
-            total_idle_time     +=  curr_process.P->start_time - curr_process.arraival_time ;
-            total_response_time +=  curr_process.P->start_time - curr_process.arraival_time ;
+            total_idle_time     +=  curr_process.pcb->start_time - curr_process.arraival_time ;
+            total_response_time +=  curr_process.pcb->start_time - curr_process.arraival_time ;
             total_running_time  +=  curr_process.running_time ;     
 
         }
         else if (running)
         {
-            if (getClk() - curr_process.P->start_time  == curr_process.running_time)
+            if (getClk() - curr_process.pcb->start_time  == curr_process.running_time)
             {
-                curr_process.P->finish_time = getClk() ;
-                curr_process.P->turnaround_time = curr_process.P->finish_time - curr_process.arraival_time  ;
-                curr_process.P->excution_time = curr_process.P->finish_time - curr_process.P->start_time  ;
-                curr_process.P->remaining_time = 0 ;
+                curr_process.pcb->finish_time = getClk() ;
+                curr_process.pcb->turnaround_time = curr_process.pcb->finish_time - curr_process.arraival_time  ;
+                curr_process.pcb->excution_time = curr_process.pcb->finish_time - curr_process.pcb->start_time  ;
+                curr_process.pcb->remaining_time = 0 ;
 
                 // set statistics
 
-                total_waiting_time    += curr_process.P->Waiting_time ;
-                total_turnaround_time += curr_process.P->turnaround_time;                
-                total_response_time   += curr_process.P->response_time ;
+                total_waiting_time    += curr_process.pcb->Waiting_time ;
+                total_turnaround_time += curr_process.pcb->turnaround_time;                
+                total_response_time   += curr_process.pcb->response_time ;
                 start_arr_index       += 1 ;
                 completed             += 1 ;
 
@@ -85,7 +83,7 @@ void SJF()
             }
             else
             {
-                curr_process.P->remaining_time = getClk() - curr_process.P->start_time ;
+                curr_process.pcb->remaining_time = getClk() - curr_process.pcb->start_time ;
             }
         }
 

@@ -1,7 +1,7 @@
 #include "ShortestRemainingTimeNext.h"
 
 
-void SRTN()
+void SRTN(queue* Ready_Queue)
 {
     //Shortest Remaining Time Next ---> SRTN
     // assume that ready queue has all information
@@ -30,22 +30,22 @@ void SRTN()
                 // save prev process PCB QA //prev process params is arleady saved as we go through code, it's always updated
                 
                 // state of curr is started 
-                Ready_Queue[curr_process].P->status ="sta";
+                Ready_Queue[curr_process].pcb->status ="sta";
                 
                 // state of prev_process is stoped -->sto
-                Ready_Queue[prev_process].P->status ="sto";
+                Ready_Queue[prev_process].pcb->status ="sto";
 
             }
-            if (Ready_Queue[front].P->run_for_first) // if run first set the start time
+            if (Ready_Queue[front].pcb->run_for_first) // if run first set the start time
             {
                 // Setting ST for the process
-                Ready_Queue[front].P->start_time = current_time;
+                Ready_Queue[front].pcb->start_time = current_time;
                 // setting bool to false
-                Ready_Queue[front].P->run_for_first = false;
+                Ready_Queue[front].pcb->run_for_first = false;
                 // total idle time for the process
-                total_idle_time+= Ready_Queue[front].P->start_time-Ready_Queue[front].arraival_time ;
+                total_idle_time+= Ready_Queue[front].pcb->start_time-Ready_Queue[front].arraival_time ;
                 // state of the current process is running now 
-                 Ready_Queue[front].P->state = 'r' ;
+                 Ready_Queue[front].pcb->state = 'r' ;
                  // status of the current process start ;
                  // Ready_Queue[front].P->status ="sta"; //it's better to be in previous if condition. 
                  // because it should start immediatly, it doesn't matter if it's first run or otherwise
@@ -55,27 +55,27 @@ void SRTN()
                 // Ready_Queue[front].P->status ="res"; //why?
             }
             // we picking a process then we need to decreament remaining time
-            (Ready_Queue[front].P->remaining_time )--;
+            (Ready_Queue[front].pcb->remaining_time )--;
             prev_time = current_time;
             // process complete
-            if (Ready_Queue[front].P->remaining_time == 0)
+            if (Ready_Queue[front].pcb->remaining_time == 0)
             {
                 // TODO --> WTA
                 // remember :the state----> TODO
                 // Finish Time Calculation
-                Ready_Queue[front].P->finish_time = current_time;
+                Ready_Queue[front].pcb->finish_time = current_time;
                 // TA_time = FT -AT
-                Ready_Queue[front].P->turnaround_time = Ready_Queue[front].P->finish_time - Ready_Queue[front].arraival_time;
+                Ready_Queue[front].pcb->turnaround_time = Ready_Queue[front].pcb->finish_time - Ready_Queue[front].arraival_time;
                 // WT = TA_time - AT
-                Ready_Queue[front].P->Waiting_time = Ready_Queue[front].P->turnaround_time - Ready_Queue[front].running_time;
+                Ready_Queue[front].pcb->Waiting_time = Ready_Queue[front].pcb->turnaround_time - Ready_Queue[front].running_time;
 
                 // OUR GLOBAL TIMES
-                total_waiting_time += Ready_Queue[front].P->Waiting_time ;
-                total_turnaround_time+= Ready_Queue[front].P->turnaround_time;
-                total_response_time += Ready_Queue[front].P->response_time ;
+                total_waiting_time += Ready_Queue[front].pcb->Waiting_time ;
+                total_turnaround_time+= Ready_Queue[front].pcb->turnaround_time;
+                total_response_time += Ready_Queue[front].pcb->response_time ;
 
                 // setting state as completed 
-                Ready_Queue[front].P->status= "fin" ;
+                Ready_Queue[front].pcb->status= "fin" ;
             }
             current_time = getClk();
             prev_process = curr_process;

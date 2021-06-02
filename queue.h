@@ -1,9 +1,9 @@
-#define MAX 300
+#include "headers.h"
 int front;
 int rear;
 
 
-typedef struct
+typedef struct Queue
 {
 
     int pid;
@@ -11,7 +11,7 @@ typedef struct
     int running_time;
     int priority;
 
-    struct PCB *P;
+    struct PCB *pcb;
 }queue;
 // process control block
 typedef struct PCB
@@ -37,9 +37,10 @@ typedef struct PCB
     bool run_for_first; // intialized by true
 };
 
-void createQueue(queue *qu, int front, int rear);
+void createQueue();
 void insert_by_priority(queue *qu, int data);
 void check(queue *qu,int data);
 void delete_by_priority(queue *qu,int data);
 void display_pqueue(queue *qu);
+int getSize();
 

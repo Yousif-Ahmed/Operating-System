@@ -14,10 +14,20 @@
 typedef short bool;
 #define true 1
 #define false 0
-
+#define MAX 300
 #define SHKEY 300
 
-
+//Global Variables
+int process_count = 0;
+queue AllProcesses[MAX];
+enum Algorithms {
+		FirstComeFirstServe,
+		ShortestJobFirst,
+		PreemptiveHPF,	 	
+		ShortestRemainingTimeNext,
+		RoundRobin
+}Algo;
+int quantumTime = 0;
 // Global times for our Scheduler
 
 float avg_waiting_time;
@@ -31,10 +41,8 @@ int total_running_time =0 ;
 int start_arr_index = 0;
 bool running = false;
 
-#define MAX 300
 
 
-queue Ready_Queue[MAX];
 
 ///==============================
 //don't mess with this variable//

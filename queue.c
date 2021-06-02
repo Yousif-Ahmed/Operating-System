@@ -1,8 +1,11 @@
 #include "queue.h"
 
-void createQueue(queue *qu, int front, int rear){
+void createQueue(){
     front = -1;
     rear = -1;
+}
+int getSize(){
+    return rear-front;
 }
 void insert_by_priority(queue *qu, int data){
     if (rear >= MAX - 1)

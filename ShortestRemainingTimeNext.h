@@ -1,4 +1,4 @@
 #include "queue.h"
 #include "headers.h"
 
-void SRTN();
+void SRTN(queue* ReadyQueue);

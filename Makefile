@@ -4,7 +4,7 @@ build:
 	gcc scheduler.c -o scheduler.out
 	gcc process.c -o process.out
 	gcc test_generator.c -o test_generator.out
-
+	touch keyfile
 clean:
 	rm -f *.out  processes.txt
 

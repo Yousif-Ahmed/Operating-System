@@ -42,32 +42,32 @@ void FCFS()
             // fork it now
 
             // set its parameters  
-            arr[start_arr_index].P->start_time = getClk() ;
-            arr[start_arr_index].P->run_for_first = false ;
-            arr[start_arr_index].P->Waiting_time = getClk() - arr[start_arr_index].arraival_time ;            
+            arr[start_arr_index].pcb->start_time = getClk() ;
+            arr[start_arr_index].pcb->run_for_first = false ;
+            arr[start_arr_index].pcb->Waiting_time = getClk() - arr[start_arr_index].arraival_time ;            
             // equal to waiting time
-            arr[start_arr_index].P->response_time = arr[start_arr_index].P->start_time - arr[start_arr_index].arraival_time ;
+            arr[start_arr_index].pcb->response_time = arr[start_arr_index].pcb->start_time - arr[start_arr_index].arraival_time ;
 
 
-            total_idle_time     +=  arr[start_arr_index].P->start_time - arr[start_arr_index].arraival_time ;
-            total_response_time +=  arr[start_arr_index].P->start_time - arr[start_arr_index].arraival_time ;
+            total_idle_time     +=  arr[start_arr_index].pcb->start_time - arr[start_arr_index].arraival_time ;
+            total_response_time +=  arr[start_arr_index].pcb->start_time - arr[start_arr_index].arraival_time ;
             total_running_time  +=  arr[start_arr_index].running_time ;     
 
         }
         else if (running)
         {
-            if (getClk() - arr[start_arr_index].P->start_time  == arr[start_arr_index].running_time)
+            if (getClk() - arr[start_arr_index].pcb->start_time  == arr[start_arr_index].running_time)
             {
-                arr[start_arr_index].P->finish_time = getClk() ;
-                arr[start_arr_index].P->turnaround_time = arr[start_arr_index].P->finish_time - arr[start_arr_index].arraival_time  ;
-                arr[start_arr_index].P->excution_time = arr[start_arr_index].P->finish_time - arr[start_arr_index].P->start_time  ;
-                arr[start_arr_index].P->remaining_time = 0 ;
+                arr[start_arr_index].pcb->finish_time = getClk() ;
+                arr[start_arr_index].pcb->turnaround_time = arr[start_arr_index].pcb->finish_time - arr[start_arr_index].arraival_time  ;
+                arr[start_arr_index].pcb->excution_time = arr[start_arr_index].pcb->finish_time - arr[start_arr_index].pcb->start_time  ;
+                arr[start_arr_index].pcb->remaining_time = 0 ;
 
                 // set statistics
 
-                total_waiting_time    += arr[start_arr_index].P->Waiting_time ;
-                total_turnaround_time += arr[start_arr_index].P->turnaround_time;                
-                total_response_time   += arr[start_arr_index].P->response_time ;
+                total_waiting_time    += arr[start_arr_index].pcb->Waiting_time ;
+                total_turnaround_time += arr[start_arr_index].pcb->turnaround_time;                
+                total_response_time   += arr[start_arr_index].pcb->response_time ;
                 start_arr_index       += 1 ;
                 completed             += 1 ;
 
@@ -77,7 +77,7 @@ void FCFS()
             }
             else
             {
-                arr[start_arr_index].P->remaining_time = getClk() - arr[start_arr_index].P->start_time ;
+                arr[start_arr_index].pcb->remaining_time = getClk() - arr[start_arr_index].pcb->start_time ;
             }
         }
 
