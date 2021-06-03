@@ -1,12 +1,7 @@
+
+#include "algorithms.h"
+
 #include "queue.h"
-#include "headers.h"
-#include "FirstComeFirstServe.h"
-#include "ShortestJobFirst.h"
-#include "ShortestRemainingTimeNext.h"
-#include "Preemptive_HPF.h"
-#include "RoundRobin.h"
-
-
 
 queue Ready_Queue[MAX];
 int currentProcess = 0;
@@ -29,7 +24,7 @@ int main(int argc, char *argv[])
 	
 	//@TODO: read Selected Algorithm and its parameters
 	while(msgrcv(queueId, &parameter, sizeof(parameter.value), 0, 0) == -1){}
-	Algo = parameter.value;
+	Algo = parameter.value - 1;
 	switch (Algo)						// check if the algorithm has parameters, go read them
 	{
 		case RoundRobin:
@@ -48,7 +43,7 @@ int main(int argc, char *argv[])
 	case RoundRobin:
 		while (true)
 		{
-			RoundRobinAlgo(Ready_Queue, quantumTime, currentProcess);
+			RoundRobinAlgo(Ready_Queue, quantumTime, &currentProcess);
 		}
 		break;
 	case FirstComeFirstServe:
@@ -60,7 +55,7 @@ int main(int argc, char *argv[])
 	case PreemptiveHPF:
 		while (true)
 		{
-			Preemptive_HPF();
+			Preemptive_HPF(Ready_Queue);
 		}
 		break;
 	case ShortestJobFirst:

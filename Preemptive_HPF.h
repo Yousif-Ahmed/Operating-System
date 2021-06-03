@@ -1,4 +1,8 @@
-#include "queue.h"
 #include "headers.h"
 
-void Preemptive_HPF();
+#ifndef PREEMPTIVE_H
+#define PREEMPTIVE_H
+
+
+void Preemptive_HPF(queue * Ready_Queue);
+#endif

@@ -1,8 +1,5 @@
+#include "algorithms.h"
 #include "headers.h"
-#include "queue.h"
-
-
-
 void clearResources(int);
 void readProcessesFile(queue *AllProcesses, char *filePath);
 void validateArguments();
@@ -45,10 +42,8 @@ int main(int argc, char *argv[])
     validateArguments();
 
     // 3. Initiate and create the scheduler and clock processes.
-    char *args[]={"./clk.out",NULL};
-    execl(args[0], args);       // run clk program
-    args[0] = "./scheduler.out";
-    execl(args[0], args);
+    execl("./clk.out","./clk.out",(char*) NULL);       // run clk program
+    execl("./scheduler.out","./clk.out",(char*) NULL);
     //system("./scheduler.out"); // run scheduler
 
     // 4. Use this function after creating the clock process to initialize clock.
@@ -61,13 +56,13 @@ int main(int argc, char *argv[])
     // Shared Memory & Semaphore for communication between procoess_generator and scheduler
     communicationKey = ftok("keyfile", 'M');
 
-    while (shmid == -1 || semid == -1)
+    while (shmId == -1 || semId == -1)
     {
-        shmid = shmget(communicationKey, 5, 0666 | IPC_CREAT);
-        semid = semget(communicationKey, 1, 0666 | IPC_CREAT);
+        shmId = shmget(communicationKey, 5, 0666 | IPC_CREAT);
+        semId = semget(communicationKey, 1, 0666 | IPC_CREAT);
     }
     semun.val = 0;
-    semctl(semid, 0, SETVAL, semun);
+    semctl(semId, 0, SETVAL, semun);
 
     // 5. Create a data structure for processes and provide it with its parameters.
 
@@ -78,8 +73,8 @@ int main(int argc, char *argv[])
         // 6. Send the information to the scheduler at the appropriate time.
         if (getClk() == AllProcesses[processIdx].arraival_time)
         {
-            shmaddress = shmat(shmid, (void *)0, 0);
-            shmaddress = AllProcesses[processIdx];              // write the process info in the shared memory, so the scheduler can read it
+            shmaddress = shmat(shmId, (void *)0, 0);
+            *shmaddress = AllProcesses[processIdx];              // write the process info in the shared memory, so the scheduler can read it
             shmdt(shmaddress);
             processIdx++;
             //up(semid);

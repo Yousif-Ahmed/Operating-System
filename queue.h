@@ -1,7 +1,21 @@
-#include "headers.h"
+#ifndef QUEUE_H
+#define QUEUE_H
+
+typedef short bool;
+#define true 1
+#define false 0
+#define MAX 300
+
 int front;
 int rear;
 
+
+enum State {
+		Started,
+		Stopped,
+		Resumed,	 	
+		Finished
+}state;
 
 typedef struct Queue
 {
@@ -14,7 +28,7 @@ typedef struct Queue
     struct PCB *pcb;
 }queue;
 // process control block
-typedef struct PCB
+struct PCB
 {
     // r  -->for running
     // w  -->for waiting
@@ -45,4 +59,5 @@ void check(queue *qu,int data);
 void delete_by_priority(queue *qu,int data);
 void display_pqueue(queue *qu);
 int getSize();
-
+bool is_empty();
+#endif

@@ -1,5 +1,4 @@
 #include "RoundRobin.h"
-#include "headers.h"
 
 void RoundRobinAlgo(queue *Ready_Queue, int qTime, int *processIdx)
 {
@@ -27,7 +26,8 @@ void RoundRobinAlgo(queue *Ready_Queue, int qTime, int *processIdx)
                 {
                     Ready_Queue[currentProcess].pid = pID;                                      // store the process ID so we can use it later
                     char *args[] = {"./process.out", NULL};
-                    execl("./process.out", args);                                               // run the process.c file
+                execl("./process.out","./process.out",(char*) NULL);                            // run the process.c file
+                                                               
                     exit(-1);                                                                   // if the process.c couldn't run, exit >> since this is the forked child not the parent "Scheduler"
                 }
 

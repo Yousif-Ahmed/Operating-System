@@ -1,3 +1,6 @@
+#ifndef HEADER_H
+#define HEADER_H
+
 #include <stdio.h> //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,36 +14,19 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include "queue.h"
 
-
-typedef short bool;
-#define true 1
-#define false 0
-#define MAX 300
 #define SHKEY 300
 
 
-// Message struct to use for communication
-struct message
-{
-    long mtype;
-    char msgText[256];
-};
-union Semun
-{
-    int val;
-    struct semid_ds *buf;
-    ushort *array;
-    struct seminfo *__buf;
-    void *__pad;
-};
-void *shmaddress;
+
+queue *shmaddress;
 key_t communicationKey;
-int shmid = -1;
-int semid = -1;
+int shmId = -1;
+int semId = -1;
 union Semun semun;
 
-struct message
+struct processMessage
 {
 	long mtype;
 	queue process;
@@ -57,20 +43,7 @@ int queueId;
 //Global Variables
 int process_count = 0;
 queue AllProcesses[MAX];
-enum Algorithms {
-		FirstComeFirstServe,
-		ShortestJobFirst,
-		PreemptiveHPF,	 	
-		ShortestRemainingTimeNext,
-		RoundRobin
-}Algo;
 
-enum State {
-		Started,
-		Stopped,
-		Resumed,	 	
-		Finished
-}state;
 int quantumTime = 0;
 int completedProcesses = 0;
 // Global times for our Scheduler
@@ -86,7 +59,20 @@ int total_running_time =0 ;
 int start_arr_index = 0;
 bool running = false;
 
-
+// Message struct to use for communication
+struct message
+{
+    long mtype;
+    char msgText[256];
+};
+union Semun
+{
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+    struct seminfo *__buf;
+    void *__pad;
+};
 
 
 ///==============================
@@ -142,3 +128,5 @@ void destroyClk(bool terminateAll)
 void updateQueue(){
 
 }
+
+#endif
