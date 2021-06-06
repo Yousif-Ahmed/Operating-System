@@ -26,7 +26,7 @@ typedef struct Queue
     int priority;
 
     struct PCB *pcb;
-}queue;
+}Ready_Queue;
 // process control block
 struct PCB
 {

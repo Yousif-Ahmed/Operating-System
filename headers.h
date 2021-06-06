@@ -36,7 +36,8 @@ struct Message
 {
 	long mtype;
 	int value;
-} parameter;
+} parameter; //for message queue
+
 key_t queueKey;
 int queueId;
 

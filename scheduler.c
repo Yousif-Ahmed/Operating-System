@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	//@TODO: read Selected Algorithm and its parameters
 	while(msgrcv(queueId, &parameter, sizeof(parameter.value), 0, 0) == -1){}
 	Algo = parameter.value - 1;
-	switch (Algo)						// check if the algorithm has parameters, go read them
+	switch (Algo)	// check if the algorithm has parameters, go read them
 	{
 		case RoundRobin:
 			while(msgrcv(queueId, &parameter, sizeof(parameter.value), 0, 0) == -1){}

@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
         printf("%d |", AllProcesses[i].priority);
         printf("\n");
     }
-
     // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
     int choice = 6;
 
@@ -56,6 +55,7 @@ int main(int argc, char *argv[])
     // Shared Memory & Semaphore for communication between procoess_generator and scheduler
     communicationKey = ftok("keyfile", 'M');
 
+    //don't go out until the semaphore and shared memory are created
     while (shmId == -1 || semId == -1)
     {
         shmId = shmget(communicationKey, 5, 0666 | IPC_CREAT);
@@ -111,34 +111,58 @@ void readProcessesFile(queue *AllProcesses, char *filePath)
     }
 
     int i = 0;
-
+    int count_completeInt=0;
+     
     for (char c = getc(in_file); c != EOF; c = getc(in_file))
     {
-        if (c == '#') //ignore the line has #
-            while (c != '\n' && c != EOF)
-                c = getc(in_file);
-
-        else if (c == '\n') // Increment count if this character is newline
+    	
+    	if(c == '#')//ignore the line has #
+    		while(c != '\n'  && c != EOF)
+    			c = getc(in_file);
+	
+    	else if (c == '\n') // Increment count if this character is newline
             process_count += 1;
-        else if (c != '\n' && c != '\t')
-        {
-            switch (i)
-            {
-            case 0:
-                AllProcesses[process_count].pid = c - '0';
-                break;
-            case 1:
-                AllProcesses[process_count].arraival_time = c - '0';
-                break;
-            case 2:
-                AllProcesses[process_count].running_time = c - '0';
-                break;
-            case 3:
-                AllProcesses[process_count].priority = c - '0';
-                break;
-            }
-            i = (i == 4) ? 0 : i + 1;
-        }
+    	else if(c != '\n' && c != '\t')
+    	{
+	    char completeInt[10]= "";
+	    
+            while (c != EOF && (c-'0' >=0) && (c-'0' <=9) )
+		{
+			strncat(completeInt, &c, 1);
+			c = getc(in_file);
+		}
+	    
+	    if(count_completeInt == 4)
+	    {
+	    	count_completeInt=0;
+	    	process_count += 1;
+	    }
+	    count_completeInt++;
+	    switch(i)
+	    {
+	    	case 0:
+		    	AllProcesses[process_count].pid=atoi(completeInt);
+		    	break;
+	    	case 1:
+		    	AllProcesses[process_count].arraival_time=atoi(completeInt);
+		    	break;
+	    	case 2:
+		    	AllProcesses[process_count].runing_time=atoi(completeInt);
+		    	break;
+	    	case 3:
+		    	AllProcesses[process_count].priority=atoi(completeInt);
+		    	break;
+	    }
+	    
+	    i++;
+	    if(i == 4)i=0;
+	    
+    	}
+    	
+    	
+    }
+    process_count += 1;
+    
     }
     fclose(in_file); //close the file
 }

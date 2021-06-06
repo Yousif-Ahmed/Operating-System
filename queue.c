@@ -30,7 +30,7 @@ void check(queue *qu, int data)
 
     for (i = 0; i <= rear; i++)
     {
-        if (data > qu[i].priority)
+        if (data >= qu[i].priority)
         {
             for (j = rear + 1; j > i; j--)
             {

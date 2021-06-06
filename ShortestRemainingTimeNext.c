@@ -9,76 +9,92 @@ void SRTN(queue* Ready_Queue)
     // check if any process has enter, add it to queue
     //check if remaining time of new process is smaller than working now
     
-    // picking the first process
     int current_time = getClk();
-    int prev_time = 0; //previous time
-    int curr_process;
+    int prev_time = currentTime - 1; 
+    int currentProcess=front;
     int prev_process = -1;
     
-    while (!(rear == -1 && front == -1)) // while queue is not empty -QA
-    {
-    	
-		
-        if (current_time - prev_time == 1) // now we are in time slot for 1 sec
+    while (completedProcesses != process_count) // while processes not finished 
+    {	
+        if ((currentTime = getClk()) - prev_time == 1)
         {
-            curr_process = front ;
+            prev_time = currentTime;
+            //@TODO: Implement the function
+            updateQueue();
+            if(front==-1){              // empty time slot with no ready processes
+                continue;
+            }
+            if (Ready_Queue[currentProcess].pcb->run_for_first)
+            { // If this is the first time to execute the current Process
+                Ready_Queue[currentProcess].pcb->run_for_first = false;                         // reset Flag
+                Ready_Queue[currentProcess].pcb->processState = Started;
+
+                int pID;
+                if ((pID = fork()) == 0)    // fork the process to a child
+                {
+                    Ready_Queue[currentProcess].pid = pID;                                      // store the process ID so we can use it later //pID=0
+                    char *args[] = {"./process.out", NULL};
+                execl("./process.out","./process.out",(char*) NULL);                            // run the process.c file
+                                                               
+                    exit(-1);                                                                   // if the process.c couldn't run, exit >> since this is the forked child not the parent "Scheduler"
+                }
+                
+		//the parent continue work in the algorithm
+		
+                // Send the data to the forked process
+                parameter.mtype = Ready_Queue[currentProcess].pid;
+                parameter.value = Ready_Queue[currentProcess].running_time;
+                while (msgsnd(queueId, &parameter, sizeof(parameter.value), 0) == -1){}
+                
+                // update PCB of the process in the scheduler memory
+                //initialization for the process first run
+                Ready_Queue[currentProcess].pcb->start_time = currentTime;
+                Ready_Queue[currentProcess].pcb->remaining_time = Ready_Queue[currentProcess].running_time;
+                continue;
+            }
+            if(Ready_Queue[currentProcess].pcb->processState == Stopped){
+                Ready_Queue[currentProcess].pcb->processState = Resumed;
+
+                kill(Ready_Queue[currentProcess].pid, SIGCONT);//wake up from stop
+            }
+            // Previously processed process, Update its PCB
+            Ready_Queue[currentProcess].pcb->remaining_time--;
+
+            // Notify the process with its remaining Time
+            parameter.mtype = Ready_Queue[currentProcess].pid;
+            parameter.value = Ready_Queue[currentProcess].running_time;
+            while (msgsnd(queueId, &parameter, sizeof(parameter.value), 0) == -1){}
+
+            // Finished process? Delete its data from memory
+            if (Ready_Queue[currentProcess].pcb->remaining_time == 0){
+                Ready_Queue[currentProcess].pcb->processState =Finished;
+                delete_by_priority(Ready_Queue, Ready_Queue[currentProcess].priority);
+                completedProcesses++;
+            }
             
-            //if the previous process has higher remaining time than the current one
-            if (prev_process != -1 && prev_process != curr_process)// I guess you meant prev_process instead of prev
+            //main algorithm idea of SRTN
+            if (currentTime % quantumTime == 0 && currentTime != 0) //stop this process and continue/begin the lower running time one
             {
-                // contextSwitching  QA
-                // save prev process PCB QA //prev process params is arleady saved as we go through code, it's always updated
-                
-                // state of curr is started 
-                Ready_Queue[curr_process].pcb->status ="sta";
-                
-                // state of prev_process is stoped -->sto
-                Ready_Queue[prev_process].pcb->status ="sto";
+                Ready_Queue[currentProcess].pcb->processState = Stopped;
 
+                kill(Ready_Queue[currentProcess].pid, SIGSTOP);//resume the current process
+                currentProcess = (currentProcess == rear) ? front : currentProcess + 1;
             }
-            if (Ready_Queue[front].pcb->run_for_first) // if run first set the start time
-            {
-                // Setting ST for the process
-                Ready_Queue[front].pcb->start_time = current_time;
-                // setting bool to false
-                Ready_Queue[front].pcb->run_for_first = false;
-                // total idle time for the process
-                total_idle_time+= Ready_Queue[front].pcb->start_time-Ready_Queue[front].arraival_time ;
-                // state of the current process is running now 
-                 Ready_Queue[front].pcb->state = 'r' ;
-                 // status of the current process start ;
-                 // Ready_Queue[front].P->status ="sta"; //it's better to be in previous if condition. 
-                 // because it should start immediatly, it doesn't matter if it's first run or otherwise
-        
-            }else{
-                // process state resumed
-                // Ready_Queue[front].P->status ="res"; //why?
-            }
-            // we picking a process then we need to decreament remaining time
-            (Ready_Queue[front].pcb->remaining_time )--;
-            prev_time = current_time;
-            // process complete
-            if (Ready_Queue[front].pcb->remaining_time == 0)
-            {
-                // TODO --> WTA
-                // remember :the state----> TODO
-                // Finish Time Calculation
-                Ready_Queue[front].pcb->finish_time = current_time;
-                // TA_time = FT -AT
-                Ready_Queue[front].pcb->turnaround_time = Ready_Queue[front].pcb->finish_time - Ready_Queue[front].arraival_time;
-                // WT = TA_time - AT
-                Ready_Queue[front].pcb->Waiting_time = Ready_Queue[front].pcb->turnaround_time - Ready_Queue[front].running_time;
-
-                // OUR GLOBAL TIMES
-                total_waiting_time += Ready_Queue[front].pcb->Waiting_time ;
-                total_turnaround_time+= Ready_Queue[front].pcb->turnaround_time;
-                total_response_time += Ready_Queue[front].pcb->response_time ;
-
-                // setting state as completed 
-                Ready_Queue[front].pcb->status= "fin" ;
-            }
-            current_time = getClk();
-            prev_process = curr_process;
         }
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
