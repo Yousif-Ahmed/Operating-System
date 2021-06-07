@@ -1,10 +1,18 @@
 #include "algorithms.h"
 #include "headers.h"
+#include "queue.h"
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 void clearResources(int);
 void readProcessesFile(queue *AllProcesses, char *filePath);
 void validateArguments();
 void up(int sem);
-
+struct msgbuff
+{
+    long mtype;
+    char mtext[256];
+};
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
@@ -25,6 +33,9 @@ int main(int argc, char *argv[])
     // 2. Read the chosen scheduling algorithm and its parameters, if there are any from the argument list.
     int choice = 6;
 
+    // parameters
+    int parameter = -1;
+
     for (int i = 2; i < argc; i += 2)
     { // +2 since each paramter is a pair, like: { "-sch", 2 }, { "-q",  5 }
         if (argv[i] == "-sch" && i + 1 < argc)
@@ -35,54 +46,90 @@ int main(int argc, char *argv[])
         else if (argv[i] == "-q" && i + 1 < argc)
         { // Quantum Time for Round Robin Algorithm
             quantumTime = atoi(argv[i + 1]);
+            parameter = quantumTime;
         }
         //@TODO: check for other parameters
     }
     validateArguments();
-
     // 3. Initiate and create the scheduler and clock processes.
-    execl("./clk.out","./clk.out",(char*) NULL);       // run clk program
-    execl("./scheduler.out","./clk.out",(char*) NULL);
-    //system("./scheduler.out"); // run scheduler
+    // creating clk proceses
+    printf("%d %d %d ", Algo, parameter, process_count);
+    char *process_num = process_count + '0';
+    char *pram = parameter + '0';
+    char *sch_args[] = {argv[4], NULL};
+    int pid1, pid2;
 
-    // 4. Use this function after creating the clock process to initialize clock.
-    initClk();
-
-    int x = getClk(); // To get time use this function.
-    printf("Current Time is %d\n", x);
-    
-
-    // Shared Memory & Semaphore for communication between procoess_generator and scheduler
-    communicationKey = ftok("keyfile", 'M');
-
-    //don't go out until the semaphore and shared memory are created
-    while (shmId == -1 || semId == -1)
+    pid1 = fork();
+    if (pid1 != 0)
     {
-        shmId = shmget(communicationKey, 5, 0666 | IPC_CREAT);
-        semId = semget(communicationKey, 1, 0666 | IPC_CREAT);
+        printf("pid clk = %d\n", pid1);
+        // run clk program
+        execv("./clk.out", NULL);
+        exit(0);
     }
-    semun.val = 0;
-    semctl(semId, 0, SETVAL, semun);
-
-    // 5. Create a data structure for processes and provide it with its parameters.
-
-    // TODO Generation Main Loop
-    int processIdx = 0;
-    while (processIdx < process_count)
+    else
     {
-        // 6. Send the information to the scheduler at the appropriate time.
-        if (getClk() == AllProcesses[processIdx].arraival_time)
+        pid2 = fork();
+
+        if (pid2 != 0)
         {
-            shmaddress = shmat(shmId, (void *)0, 0);
-            *shmaddress = AllProcesses[processIdx];              // write the process info in the shared memory, so the scheduler can read it
-            shmdt(shmaddress);
-            processIdx++;
-            //up(semid);
+
+            // 0---> process_num 1--->Algo 2---->parameters
+            printf("pid sch = %d\n", pid2);
+            execv("./scheduler.out", sch_args);
+            exit(0);
+        }
+        else
+        {
+
+            printf("parent pid = %d\n", getpid());
+            // 4. Use this function after creating the clock process to initialize clock.
+            initClk();
+            int completed_process = 0;
+            // 5. Create a data structure for processes and provide it with its parameters.
+
+            ///////////// communication /////////////////////////////////////////////
+            key_t key_id1 = ftok("keyfile", 65); //create unique key
+
+            int msgq_id1 = msgget(key_id1, 0666 | IPC_CREAT); //create message queue and return id
+            if (msgq_id1 == -1)
+            {
+                perror("Error in create");
+                exit(-1);
+            }
+            printf("Message Queue1 ID = %d\n", msgq_id1);
+            struct msgbuff message;
+            ////////////////////////////////////////////////////////////////////////////////
+
+            int current_time;
+            int prev_time = getClk();
+            int Index = 0;
+            int x = getClk(); // To get time use this function.
+            printf("Current Time is %d\n", x);
+            // TODO Generation Main Loop
+            while (completed_process != process_count)
+            {
+                current_time = getClk();
+                if (current_time - prev_time >= 1)
+                {
+
+                    printf("Current Time is %d\n", current_time);
+                    Index++;
+                    completed_process++;
+                    strcpy(message.mtext, "hi");
+                    message.mtype =7 ;
+                    int send_val = msgsnd(msgq_id1, &message, sizeof(message.mtext), !IPC_NOWAIT);
+                    printf(" send val = %d\n", send_val);
+                    if (send_val == -1)
+                        perror("Errror in send");
+                }
+                prev_time = current_time;
+            }
+            // 7. Clear clock resources*/
+
+            destroyClk(true);
         }
     }
-    
-    // 7. Clear clock resources
-    destroyClk(true);
 }
 
 void clearResources(int signum)
@@ -147,7 +194,7 @@ void readProcessesFile(queue *AllProcesses, char *filePath)
 		    	AllProcesses[process_count].arraival_time=atoi(completeInt);
 		    	break;
 	    	case 2:
-		    	AllProcesses[process_count].runing_time=atoi(completeInt);
+		    	AllProcesses[process_count].running_time=atoi(completeInt);
 		    	break;
 	    	case 3:
 		    	AllProcesses[process_count].priority=atoi(completeInt);
@@ -163,7 +210,8 @@ void readProcessesFile(queue *AllProcesses, char *filePath)
     }
     process_count += 1;
     
-    }
+    
+
     fclose(in_file); //close the file
 }
 
