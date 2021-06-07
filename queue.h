@@ -20,7 +20,7 @@ enum State {
 typedef struct Queue
 {
 
-    int pid;
+    int id;
     int arraival_time;
     int running_time;
     int priority;
