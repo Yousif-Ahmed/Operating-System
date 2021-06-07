@@ -11,10 +11,11 @@ void up(int sem);
 struct msgbuff
 {
     long mtype;
-    char mtext[256];
+    queue processes;
 };
 int main(int argc, char *argv[])
 {
+    
     signal(SIGINT, clearResources);
 
     // 1. Read the input files.
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
     printf("process_count at the end: %d \n", process_count);
     for (int i = 0; i < process_count; i++)
     {
-        printf("%d |", AllProcesses[i].pid);
+        printf("%d |", AllProcesses[i].id);
         printf("%d |", AllProcesses[i].arraival_time);
         printf("%d |", AllProcesses[i].running_time);
         printf("%d |", AllProcesses[i].priority);
@@ -112,16 +113,19 @@ int main(int argc, char *argv[])
                 current_time = getClk();
                 if (current_time - prev_time >= 1)
                 {
-
-                    printf("Current Time is %d\n", current_time);
-                    Index++;
-                    completed_process++;
-                    strcpy(message.mtext, "hi");
-                    message.mtype =7 ;
-                    int send_val = msgsnd(msgq_id1, &message, sizeof(message.mtext), !IPC_NOWAIT);
-                    printf(" send val = %d\n", send_val);
-                    if (send_val == -1)
-                        perror("Errror in send");
+                    if (AllProcesses[Index].arraival_time == current_time)
+                    {
+                        printf("Current Time is %d\n", current_time);
+                        message.processes =AllProcesses[Index];
+                        //strcpy(message.mtext, "hi");
+                        message.mtype = 7;
+                        int send_val = msgsnd(msgq_id1, &message, sizeof(message.processes), IPC_NOWAIT);
+                        printf(" send val = %d\n", send_val);
+                        if (send_val == -1)
+                            perror("Errror in send");
+                        Index++;
+                        completed_process++;    
+                    }
                 }
                 prev_time = current_time;
             }
@@ -158,59 +162,55 @@ void readProcessesFile(queue *AllProcesses, char *filePath)
     }
 
     int i = 0;
-    int count_completeInt=0;
-     
+    int count_completeInt = 0;
+
     for (char c = getc(in_file); c != EOF; c = getc(in_file))
     {
-    	
-    	if(c == '#')//ignore the line has #
-    		while(c != '\n'  && c != EOF)
-    			c = getc(in_file);
-	
-    	else if (c == '\n') // Increment count if this character is newline
+
+        if (c == '#') //ignore the line has #
+            while (c != '\n' && c != EOF)
+                c = getc(in_file);
+
+        else if (c == '\n') // Increment count if this character is newline
             process_count += 1;
-    	else if(c != '\n' && c != '\t')
-    	{
-	    char completeInt[10]= "";
-	    
-            while (c != EOF && (c-'0' >=0) && (c-'0' <=9) )
-		{
-			strncat(completeInt, &c, 1);
-			c = getc(in_file);
-		}
-	    
-	    if(count_completeInt == 4)
-	    {
-	    	count_completeInt=0;
-	    	process_count += 1;
-	    }
-	    count_completeInt++;
-	    switch(i)
-	    {
-	    	case 0:
-		    	AllProcesses[process_count].pid=atoi(completeInt);
-		    	break;
-	    	case 1:
-		    	AllProcesses[process_count].arraival_time=atoi(completeInt);
-		    	break;
-	    	case 2:
-		    	AllProcesses[process_count].running_time=atoi(completeInt);
-		    	break;
-	    	case 3:
-		    	AllProcesses[process_count].priority=atoi(completeInt);
-		    	break;
-	    }
-	    
-	    i++;
-	    if(i == 4)i=0;
-	    
-    	}
-    	
-    	
+        else if (c != '\n' && c != '\t')
+        {
+            char completeInt[10] = "";
+
+            while (c != EOF && (c - '0' >= 0) && (c - '0' <= 9))
+            {
+                strncat(completeInt, &c, 1);
+                c = getc(in_file);
+            }
+
+            if (count_completeInt == 4)
+            {
+                count_completeInt = 0;
+                process_count += 1;
+            }
+            count_completeInt++;
+            switch (i)
+            {
+            case 0:
+                AllProcesses[process_count].id = atoi(completeInt);
+                break;
+            case 1:
+                AllProcesses[process_count].arraival_time = atoi(completeInt);
+                break;
+            case 2:
+                AllProcesses[process_count].running_time = atoi(completeInt);
+                break;
+            case 3:
+                AllProcesses[process_count].priority = atoi(completeInt);
+                break;
+            }
+
+            i++;
+            if (i == 4)
+                i = 0;
+        }
     }
     process_count += 1;
-    
-    
 
     fclose(in_file); //close the file
 }

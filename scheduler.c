@@ -5,14 +5,16 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-// queue of processes
-//queue Ready_Queue;
-int currentProcess = 0;
 
+// queue of processes
+
+
+int currentProcess = 0;
+queue Ready_Queue [MAX];
 struct msgbuff
 {
 	long mtype;
-	char mtext[256];
+	queue processes;
 };
 void Intialize();
 
@@ -24,6 +26,7 @@ int main(int argc, char *argv[])
 	initClk();
 
 	printf(" schedulerrrrrrrrrrrrrrrrrrr\n");
+    int process_num = 10;
 
 	///////////// communication /////////////////////////////////////////////
 	key_t key_id1 = ftok("keyfile", 65);			  //create unique key
@@ -40,23 +43,28 @@ int main(int argc, char *argv[])
 	int completedProcesses = 0;
 	int prev_time = getClk();
 	int current_time;
+    int current_index = 0 ;
 
 	while (completedProcesses != 10)
 	{
 		current_time = getClk();
 		if (current_time - prev_time >= 1)
 		{
+			printf("sch here\n");
 
-			int rec_val = msgrcv(msgq_id1, &message, sizeof(message.mtext), message.mtype, !IPC_NOWAIT);
+			int rec_val = msgrcv(msgq_id1, &message, sizeof(message.processes), message.mtype, !IPC_NOWAIT);
 
 			if (rec_val == -1)
 				perror("Error in receive\n");
 			else
 			{
 
-				printf("Message received from autogen %ld : %s \n", message.mtype, message.mtext);
+				printf("Message received from autogen %ld : %d \n", message.mtype, message.processes.id);
+				completedProcesses++;
+				
+				//Ready_Queue[current_index].arraival_time = message.processes.
 			}
-			completedProcesses++;
+			
 		}
 		prev_time = current_time;
 	}
